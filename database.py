@@ -11,4 +11,8 @@ crl.perform()
 crl.close()
 get_body = bObj.getvalue()
 test = ast.literal_eval(get_body.decode('utf8'))
-print(test) # To verify that everything worked, will spam output
+
+# Write data to data.txt
+with open("data.txt", "w") as file:
+    file.write(get_body.decode('utf8') + '\n')
+
