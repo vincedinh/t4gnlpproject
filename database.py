@@ -1,6 +1,9 @@
 import pycurl
+import pickle
 from io import BytesIO
 import ast
+
+TRAINING_SIZE = 16798
 
 # Loads database into test
 bObj = BytesIO()
@@ -10,9 +13,22 @@ crl.setopt(crl.WRITEDATA, bObj)
 crl.perform()
 crl.close()
 get_body = bObj.getvalue()
-test = ast.literal_eval(get_body.decode('utf8'))
+full_data = ast.literal_eval(get_body.decode('utf8'))
 
-# Write data to data.txt
-with open("data.txt", "w") as file:
-    file.write(get_body.decode('utf8') + '\n')
 
+# Split data
+test_data = []
+train_data = []
+
+for i, item in enumerate(full_data['data']):
+    if i < TRAINING_SIZE:
+        train_data.append(item)
+    else:
+        test_data.append(item)
+ 
+# Write to file# Write to file
+with open("train_data.pkl", "wb") as file:
+    pickle.dump(train_data, file)
+
+with open("test_data.pkl", "wb") as file:
+    pickle.dump(test_data, file)
