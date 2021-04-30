@@ -62,7 +62,7 @@ def build_category_vecs():
     for item in train_data:
 
         tags = [] # Tags in the current query
-        for tag in item["label"].split():
+        for tag in item["label"].split(): # Each string is its own label
             tags.append(tag)
 
         # Build array of new word frequencies
