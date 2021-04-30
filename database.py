@@ -26,7 +26,7 @@ for i, item in enumerate(full_data['data']):
     else:
         test_data.append(item)
  
-# Write to file# Write to file
+# Write to file
 with open("train_data.pkl", "wb") as file:
     pickle.dump(train_data, file)
 
