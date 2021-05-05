@@ -22,11 +22,9 @@ def split_data(dataset):
 
 
 def build_word_vector(query, wordlist):
-
     vector = np.zeros(len(wordlist))
     for word in (query["title"] + query["query"]):
         vector[wordlist.index(word)] += 1
-
     return vector
 
 
@@ -42,7 +40,6 @@ def build_word_list(train_data):
                     if (word not in words):
                         words.append(word)
     words.sort()
-
     return words
 
 
@@ -63,8 +60,10 @@ def build_category_vecs(wordlist, train_data):
     return categories
 
 
-def predict(categories, word_vector):
+# returns a list of tuples cosine similarties for each query in ascending order from least likely to most likely category
+def predict(categories, word_vector, weights):
     similarities = []
+    word_vector = np.dot(word_vector, weights)
     for tag in categories.keys():
         similarity = np.dot(categories[tag], word_vector) / (np.linalg.norm(categories[tag]) * np.linalg.norm(word_vector))
         similarities.append((similarity, tag))
@@ -73,14 +72,19 @@ def predict(categories, word_vector):
 
 def cost(queries, categories, wordlist):
     cost = 0
+    num_queries = 0
     for query in queries:
+        # Check for empty query
+        if query["query"] == []:
+            continue            
         prediction = predict(categories, build_word_vector(query, wordlist))
-        correct = query["label"]
-        for tag in prediction:
-            if tag[1] == correct:
-                cost += (1 - tag[0]) ** 2
-        if numpy.isnan(cost):
-            print(query)
-    cost /= len(queries)
-    return cost
+        # Update cost
+        for category in prediction:
+            if category[1] == query["label"]:
+                cost += (category[0] - 1) ** 2
+            else:
+                cost += (category[0] + 1) ** 2
+        num_queries += 1
+    return cost / (2 * num_queries)
 
+def train()
