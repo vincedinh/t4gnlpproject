@@ -23,7 +23,7 @@ with open("wordlist.pkl", "rb") as file:
 # wordlist = build_word_list(train_data)
 # categories = build_category_vecs(wordlist, train_data)
 
-print(cost(train_data, categories, wordlist))
+print(gradient_descent(train_data, categories, wordlist, .01, 100))
 
 # with open("train_data.pkl", "wb") as file:
 #     train_data = pickle.dump(train_data, file)

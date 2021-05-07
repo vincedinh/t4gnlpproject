@@ -63,11 +63,10 @@ def build_category_vecs(wordlist, train_data):
 # returns a list of tuples cosine similarties for each query in ascending order from least likely to most likely category
 def predict(categories, word_vector, weights):
     similarities = []
-    word_vector = np.dot(word_vector, weights)
+    word_vector = word_vector * weights
     for tag in categories.keys():
         similarity = np.dot(categories[tag], word_vector) / (np.linalg.norm(categories[tag]) * np.linalg.norm(word_vector))
         similarities.append((similarity, tag))
-    similarities.sort()
     return similarities
 
 def cost(queries, categories, wordlist):
@@ -87,4 +86,28 @@ def cost(queries, categories, wordlist):
         num_queries += 1
     return cost / (2 * num_queries)
 
-def train()
+def gradient_descent(train_data, categories, wordlist, learn_rate, num_iters):
+    weights = np.ones(len(wordlist))
+    cost_history = []
+    for iter in range(num_iters):
+        new_weights = np.zeros(weights.shape)
+        for j in range(weights.shape[0]):
+            gradient = 0
+            for i in range(len(train_data)):
+                if train_data[i]["query"] == []:
+                    continue
+                word_vector = build_word_vector(train_data[i], wordlist)
+                prediction = predict(categories, word_vector, weights)
+                print(prediction)
+                for category in prediction:
+                    if category == train_data[i]["label"]:
+                        gradient += (category[0] - 1) * word_vector[j]
+                    else:
+                        gradient += (category[0] + 1) * word_vector[j]
+            gradient /= (len(train_data) * len(categories))
+            new_weights[j] = weights[j] - (learn_rate * gradient)
+        weights = new_weights.copy()
+        cost = cost(train_data, categories, wordlist)
+        cost_history.append(cost)
+        print(cost)
+    return weights, cost_history
