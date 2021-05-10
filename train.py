@@ -28,9 +28,9 @@ with open("weights.pkl", "rb") as file:
 # test_data, train_data = split_data
 # wordlist = build_word_list(train_data)
 # categories = build_category_vecs(wordlist, train_data)
-training = gradient_descent(train_data, categories, wordlist, .01, 3)
+training = gradient_descent(train_data, categories, wordlist, .01, 3, .01, weights)
 
-test_model(weights, test_data, categories, wordlist)
+#test_model(training[0], test_data, categories, wordlist)
 
 
 # with open("weights.pkl", "wb") as file:

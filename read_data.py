@@ -72,7 +72,7 @@ def predict(categories, word_vector, weights):
         similarities.append((similarity, tag))
     return similarities
 
-def cost(queries, categories, wordlist, weights):
+def cost(queries, categories, wordlist, weights, reg_weight):
     cost = 0
     num_queries = 0
     for query in queries:
@@ -86,11 +86,11 @@ def cost(queries, categories, wordlist, weights):
                 cost += (category[0] - 1) ** 2
             else:
                 cost += (category[0] + 1) ** 2
+            cost += reg_weight + np.sum(np.square(weights))
         num_queries += 1
     return cost / (2 * num_queries)
 
-def gradient_descent(train_data, categories, wordlist, learn_rate, num_iters):
-    weights = np.ones(len(wordlist))
+def gradient_descent(train_data, categories, wordlist, learn_rate, num_iters, reg_weight, weights):
     cost_history = []
     word_vectors = [build_word_vector(query, wordlist) for query in train_data]
     for i in range(num_iters):
@@ -98,15 +98,16 @@ def gradient_descent(train_data, categories, wordlist, learn_rate, num_iters):
         new_weights = np.zeros(weights.shape)
         for j in range(weights.shape[0]):
             gradient = 0
-            for word_vector in word_vectors:
+            predictions = [predict(categories, word_vector, weights) if np.count_nonzero(word_vector) != 0 else [] for word_vector in word_vectors]
+            for k, word_vector in enumerate(word_vectors):
                 if (word_vector[j] == 0):
                     continue
-                prediction = predict(categories, word_vector, weights) # Might be able to move this earlier and do all predictions at once
-                for category in prediction:
+                for category in predictions[k]:
                     if category == train_data[i]["label"]:
                         gradient += (category[0] - 1) * word_vector[j]
                     else:
                         gradient += (category[0] + 1) * word_vector[j]
+                    gradient += 2 * reg_weight * weights[j]
             gradient /= (len(train_data) * len(categories))
             new_weights[j] = weights[j] - (learn_rate * gradient)
         weights = new_weights.copy()
