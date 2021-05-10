@@ -24,7 +24,10 @@ def split_data(dataset):
 def build_word_vector(query, wordlist):
     vector = np.zeros(len(wordlist))
     for word in (query["title"] + query["query"]):
-        vector[wordlist.index(word)] += 1
+        try:
+            vector[wordlist.index(word)] += 1
+        except ValueError:
+            pass
     return vector
 
 
@@ -69,14 +72,14 @@ def predict(categories, word_vector, weights):
         similarities.append((similarity, tag))
     return similarities
 
-def cost(queries, categories, wordlist):
+def cost(queries, categories, wordlist, weights):
     cost = 0
     num_queries = 0
     for query in queries:
         # Check for empty query
         if query["query"] == []:
             continue            
-        prediction = predict(categories, build_word_vector(query, wordlist))
+        prediction = predict(categories, build_word_vector(query, wordlist), weights)
         # Update cost
         for category in prediction:
             if category[1] == query["label"]:
@@ -89,16 +92,16 @@ def cost(queries, categories, wordlist):
 def gradient_descent(train_data, categories, wordlist, learn_rate, num_iters):
     weights = np.ones(len(wordlist))
     cost_history = []
-    for iter in range(num_iters):
+    word_vectors = [build_word_vector(query, wordlist) for query in train_data]
+    for i in range(num_iters):
+        print(str(i*100/num_iters) + "% complete")
         new_weights = np.zeros(weights.shape)
         for j in range(weights.shape[0]):
             gradient = 0
-            for i in range(len(train_data)):
-                if train_data[i]["query"] == []:
+            for word_vector in word_vectors:
+                if (word_vector[j] == 0):
                     continue
-                word_vector = build_word_vector(train_data[i], wordlist)
-                prediction = predict(categories, word_vector, weights)
-                print(prediction)
+                prediction = predict(categories, word_vector, weights) # Might be able to move this earlier and do all predictions at once
                 for category in prediction:
                     if category == train_data[i]["label"]:
                         gradient += (category[0] - 1) * word_vector[j]
@@ -107,7 +110,20 @@ def gradient_descent(train_data, categories, wordlist, learn_rate, num_iters):
             gradient /= (len(train_data) * len(categories))
             new_weights[j] = weights[j] - (learn_rate * gradient)
         weights = new_weights.copy()
-        cost = cost(train_data, categories, wordlist)
-        cost_history.append(cost)
-        print(cost)
+        curr_cost = cost(train_data, categories, wordlist, weights)
+        cost_history.append(curr_cost)
+        print(curr_cost)
     return weights, cost_history
+
+def test_model(weights, test_data, categories, wordlist):
+    num_correct = 0
+    total = 0
+    word_vectors = [build_word_vector(query, wordlist) for query in test_data]
+    for i in range(len(test_data)):
+        if word_vectors[i] == []:
+            continue
+        if max(predict(categories, word_vectors[i], weights))[1] == test_data[i]["label"]:
+            num_correct += 1
+        total += 1
+    print("Accuracy:", num_correct/total)
+
