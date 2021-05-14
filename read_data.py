@@ -2,7 +2,7 @@ import ast
 import pickle
 
 import numpy as np
-
+from gensim.models import Doc2Vec
 
 TRAINING_RATIO = 10 # One out of every TRAINING_RATIO data gets included in test data set, rest used for training
 
