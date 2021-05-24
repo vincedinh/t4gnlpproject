@@ -12,39 +12,12 @@ from gensim.test.test_doc2vec import ConcatenatedDoc2Vec
 
 from read_data import *
 
-# with open("data.txt") as file:
-#     database = file.read()
-
-# database = ast.literal_eval(database)
-# test_data, train_data = split_data(database)
-
 with open("train_data.pkl", "rb") as file:
     train_data = pickle.load(file)
 
 with open("test_data.pkl", "rb") as file:
     test_data = pickle.load(file)
 
-with open("categories.pkl", "rb") as file:
-    categories = pickle.load(file)
-
-with open("wordlist.pkl", "rb") as file:
-    wordlist = pickle.load(file)
-
-with open("weights.pkl", "rb") as file:
-    weights = pickle.load(file)
-
-# test_data, train_data = split_data
-# wordlist = build_word_list(train_data)
-# categories = build_category_vecs(wordlist, train_data)
-# print(len(wordlist))
-
-# training = gradient_descent(train_data, categories, wordlist, .001, 3, .001, weights)
-
-#test_model(training[0], test_data, categories, wordlist)
-
-
-# with open("weights.pkl", "wb") as file:
-#     pickle.dump(training[0], file)
 
 #constructs document vectors from models and document word list
 def get_vectors(model, tagged_docs):
@@ -68,7 +41,8 @@ for epoch in range(10):
 y_train, X_train = get_vectors(model_dbow, documents)
 y_test, X_test = get_vectors(model_dbow, test_documents)
 
-logreg = LogisticRegression(solver='saga', n_jobs=1, C=.01, max_iter=100, penalty='elasticnet', l1_ratio=.75)
+logreg = LogisticRegression(solver='liblinear', n_jobs=1, C=75, max_iter=400)
+#73% accuracy w/ (solver=liblinear, c=50, max_iter=200)
 logreg.fit(X_train, y_train)
 y_pred = logreg.predict(X_test)
 
